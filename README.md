@@ -4,8 +4,6 @@ Automated workflow that finds Business Analyst jobs every day, scores
 them against my profile, logs them to Google Sheets, and emails me the
 best matches.
 
-![Workflow](docs/workflow-screenshot.png)
-
 ## How it works
 1. Schedule Trigger runs daily at 9 AM IST
 2. Fetches jobs from the Himalayas API
