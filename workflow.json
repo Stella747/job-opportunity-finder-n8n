@@ -1,0 +1,605 @@
+{
+  "name": "W1-Job Opportunity Finder",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://himalayas.app/jobs/api/search?q=business%20analyst&country=India&sort=recent&page=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        32,
+        0
+      ],
+      "id": "49aae370-2055-480f-ac4b-050a01462978",
+      "name": "API - Himalayas Business Analyst Jobs"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "030b6277-ed88-4b62-8fa3-aefd311f626b",
+              "name": "=title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "d1afe1da-ed63-4d63-93d5-41431cd4b9bd",
+              "name": "=job_url",
+              "value": "={{ $json.applicationLink }}",
+              "type": "string"
+            },
+            {
+              "id": "2efeb61c-29f6-41ef-8e97-0f29e9726786",
+              "name": "=description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "134d48af-de45-46ae-b87d-04339b307b8a",
+              "name": "=posted_date",
+              "value": "={{ $json.pubDate }}",
+              "type": "string"
+            },
+            {
+              "id": "ef11c4c1-5e2f-4cf5-9117-f1cbf80af233",
+              "name": "source",
+              "value": "himalayas",
+              "type": "string"
+            },
+            {
+              "id": "a3919387-87c1-4736-87ce-9804f33685d6",
+              "name": "=company",
+              "value": "={{ $json.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "c3693209-20e9-4ffa-98fc-6857062736d6",
+              "name": "=employment_type",
+              "value": "={{ $json.employmentType }}",
+              "type": "string"
+            },
+            {
+              "id": "c8564534-57d9-428d-8981-1c5398ab1674",
+              "name": "seniority",
+              "value": "={{ $json.seniority }}",
+              "type": "array"
+            },
+            {
+              "id": "b4ec4c45-8295-4355-a783-12180e8c5cb0",
+              "name": "=min_salary",
+              "value": "={{ $json.minSalary }}",
+              "type": "string"
+            },
+            {
+              "id": "7cd03695-a587-43d0-b6f4-896fc60ae56b",
+              "name": "=max_salary",
+              "value": "={{ $json.maxSalary }}",
+              "type": "string"
+            },
+            {
+              "id": "45c48673-32c2-4498-ae38-b40e03459e90",
+              "name": "=currency",
+              "value": "={{ $json.currency }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "a546d085-7bb0-483e-8afa-20ff88a57a9a",
+      "name": "Normalize Himalayas Jobs"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jobs",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "5660c1ac-be1f-448c-8c6b-3dbd07f8b0a8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5682f4d7-d7cb-4aa4-bb4d-11ea9e6654fa",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "=Product Analyst|Business System Analyst|Business Data Analyst|Business Operations Analyst|Systems Analyst|Business Process Analyst|Requirements Analyst|Requirements Analyst|Business Intelligence Analyst| Business Strategy Analyst|Business Functional Analyst",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "68489f6f-4da1-48a3-a7ec-52184ed7adca",
+      "name": "Filter Target Job Titles"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const rawDescription = $json.description || \"\";\n\nconst cleanDescription = rawDescription\n  .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, \" \")\n  .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, \" \")\n  .replace(/<[^>]*>/g, \" \")\n  .replace(/&nbsp;/gi, \" \")\n  .replace(/&amp;/gi, \"&\")\n  .replace(/&lt;/gi, \"<\")\n  .replace(/&gt;/gi, \">\")\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;|&apos;/gi, \"'\")\n  .replace(/\\s+/g, \" \")\n  .trim();\n\nreturn {\n  ...$json,\n  description_clean: cleanDescription,\n  description_clean_length: cleanDescription.length,\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "42993fdb-76b5-4f10-a53f-b432d9e69a37",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst rawDescription = $json.description_clean || $json.description || \"\";\n\nconst description = rawDescription\n  .replace(/<[^>]*>/g, \" \")\n  .replace(/&nbsp;/gi, \" \")\n  .replace(/&amp;/gi, \"&\")\n  .replace(/\\s+/g, \" \")\n  .toLowerCase();\n\nconst title = ( $json.title|| \"\").toLowerCase();\n\nconst candidate = {\n  professionalSkills: [\n    \"business analysis\", \"requirements gathering\",\n    \"requirements analysis\", \"functional specifications\",\n    \"brd\", \"frd\", \"fsd\", \"use cases\", \"user stories\",\n    \"acceptance criteria\", \"uat coordination\",\n    \"stakeholder management\", \"scope management\",\n    \"sql\", \"etl\", \"rest api integration\",\n    \"database-integrated automation\", \"python\",\n    \"powershell\", \"power bi\", \"excel\", \"tableau\",\n    \"zoho analytics\", \"servicenow\", \"ansible\", \"mfoo\",\n    \"power automate\", \"process discovery\",\n    \"value stream mapping\", \"gap analysis\",\n    \"process mapping\", \"bpmn\", \"agile\", \"scrum\",\n    \"jira\", \"confluence\", \"azure devops\",\n    \"kpi tracking\", \"root-cause analysis\",\n    \"solution design\", \"ci/cd\", \"time-series analysis\",\n    \"trend analysis\"\n  ],\n\n  projectSkills: [\n    \"pandas\", \"numpy\", \"scikit-learn\",\n    \"llm-based text classification\", \"semantic clustering\",\n    \"predictive modelling\", \"demand forecasting\",\n    \"no-show prediction\", \"multi-agent systems\",\n    \"llm-based reasoning\", \"automation probability scoring\",\n    \"amazon bedrock\", \"nova models\",\n    \"interpretive structural modelling\", \"micmac analysis\"\n  ],\n\n  platformsAndCloud: [\n    \"azure\", \"aws\", \"aws s3\", \"aws lambda\", \"aws ec2\",\n    \"shopify\", \"businessonbot\", \"visio\"\n  ]\n};\n\nfunction findMatches(skills) {\n  return skills.filter(skill => description.includes(skill));\n}\n\nconst professionalMatches = findMatches(candidate.professionalSkills);\nconst projectMatches = findMatches(candidate.projectSkills);\nconst platformMatches = findMatches(candidate.platformsAndCloud);\n\nconst professionalCoverage =\n  professionalMatches.length / candidate.professionalSkills.length;\n\nconst projectCoverage =\n  projectMatches.length / candidate.projectSkills.length;\n\nconst platformCoverage =\n  platformMatches.length / candidate.platformsAndCloud.length;\n\n\nconst matchScore = Math.round(\n  70 * professionalCoverage +\n  20 * projectCoverage +\n  10 * platformCoverage\n);\n\nreturn {\n  ...$json,\n  match_score: Math.min(100, matchScore),\n  matched_professional_skills: professionalMatches,\n  matched_project_skills: projectMatches,\n  matched_platforms: platformMatches,\n  scoring_method: \"Resume-profile keyword coverage (initial estimate)\"\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "8542522e-eca4-4225-b239-16d13c9e9eec",
+      "name": "Score Job Match"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1rPLJdxTHPyphh6ZuB8IU1eJU5hxJ3Ufx8p7ZdE3kpuc",
+          "mode": "list",
+          "cachedResultName": "AI Job Search Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rPLJdxTHPyphh6ZuB8IU1eJU5hxJ3Ufx8p7ZdE3kpuc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Jobs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rPLJdxTHPyphh6ZuB8IU1eJU5hxJ3Ufx8p7ZdE3kpuc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "title": "={{ $json.title }}",
+            "job_url": "={{ $json.job_url }}",
+            "description": "={{ $json.description }}",
+            "posted_date": "={{ $json.posted_date }}",
+            "source": "={{ $json.source }}",
+            "company": "={{ $json.company }}",
+            "employment_type": "={{ $json.employment_type }}",
+            "seniority": "={{ $json.seniority }}",
+            "min_salary": "={{ $json.min_salary }}",
+            "max_salary": "={{ $json.max_salary }}",
+            "currency": "={{ $json.currency }}",
+            "description_clean": "={{ $json.description_clean }}",
+            "description_clean_length": "={{ $json.description_clean_length }}",
+            "match_score": "={{ $json.match_score }}",
+            "matched_professional_skills": "={{ $json.matched_professional_skills }}",
+            "matched_project_skills": "={{ $json.matched_project_skills }}",
+            "matched_platforms": "={{ $json.matched_platforms }}",
+            "scoring_method": "={{ $json.scoring_method }}"
+          },
+          "matchingColumns": [
+            "title"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "job_url",
+              "displayName": "job_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "posted_date",
+              "displayName": "posted_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "employment_type",
+              "displayName": "employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seniority",
+              "displayName": "seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "min_salary",
+              "displayName": "min_salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "max_salary",
+              "displayName": "max_salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_clean",
+              "displayName": "description_clean",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_clean_length",
+              "displayName": "description_clean_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "match_score",
+              "displayName": "match_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "matched_professional_skills",
+              "displayName": "matched_professional_skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "matched_project_skills",
+              "displayName": "matched_project_skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "matched_platforms",
+              "displayName": "matched_platforms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "scoring_method",
+              "displayName": "scoring_method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "YOUR_GOOGLE_SHEET_ID",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wGNyldD530e2TdcB",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "49fabf12-d4da-4c28-9682-6310d80bd10c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL",
+        "subject": "n8n first workflow",
+        "message": "={{ $json.job_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        0
+      ],
+      "id": "YOUR_GMAIL_ACCOUNT_ID",
+      "name": "Send a message",
+      "webhookId": "a50459a2-0e1b-4155-9ea3-62a839016409",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YfoLB34Ttzydge8V",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -224,
+        208
+      ],
+      "id": "bf3c09a9-4329-4609-94bc-9291bcea9bec",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "fdf2a50d-9358-461f-bff4-bffc8514dea5",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "API - Himalayas Business Analyst Jobs": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Himalayas Jobs": {
+      "main": [
+        [
+          {
+            "node": "Filter Target Job Titles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Normalize Himalayas Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Target Job Titles": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Score Job Match",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Job Match": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "API - Himalayas Business Analyst Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "API - Himalayas Business Analyst Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e800b96e-46e8-48d2-851f-acd65dab3937",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "13543393c03626a054b4b6a1f8fb3c77d80365cf61e63253d909216aa2ffc7eb"
+  },
+  "nodeGroups": [],
+  "id": "V1BTpBz2c48xsX75",
+  "tags": []
+}
